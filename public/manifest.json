@@ -1,0 +1,15 @@
+{
+  "short_name": "Portfolio Hub",
+  "name": "Portfolio Hub - Professional Portfolio Platform",
+  "icons": [
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "3948x3948"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#8B5CF6",
+  "background_color": "#1E1B4B"
+}
