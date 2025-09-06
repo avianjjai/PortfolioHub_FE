@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { addSkill, getSkillsByUserId } from "../../services/api";
 import { usePortfolio } from "../../context/PortfolioContext";
 import { Edit2, Trash2, X } from "lucide-react";
-import { AddSkillForm, DeleteConfirmationModal, EditSkillForm } from "../forms/SkillForms";
+import { AddEditSkillForm, DeleteConfirmationModal } from "../forms/SkillForms";
 import ModalOverlay from "../forms/ModalOverlay";
 import { Skill } from "../../services/modal";
 
@@ -11,7 +11,6 @@ const SkillsSection: React.FC = () => {
     const { isAuthenticated } = useAuth();
     const { skills } = usePortfolio();
     const [categoryVisibleSkills, setCategoryVisibleSkills] = useState<Record<string, number>>({});
-    const [addError, setAddError] = useState<string | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
@@ -47,17 +46,20 @@ const SkillsSection: React.FC = () => {
         <section id='skills' className='gradient-orange-yellow py-20'>
             {showAddForm && (
                 <ModalOverlay onClose={() => setShowAddForm(false)}>
-                    <AddSkillForm
-                        setShowAddForm={setShowAddForm}
+                    <AddEditSkillForm
+                        isAdd={true}
+                        selectedSkill={null}
+                        setShowForm={setShowAddForm}
                     />
                 </ModalOverlay>
             )}
 
             {showEditForm && (
                 <ModalOverlay onClose={() => setShowEditForm(false)}>
-                    <EditSkillForm
-                        skill={selectedSkill}
-                        setShowEditForm={setShowEditForm}
+                    <AddEditSkillForm
+                        isAdd={false}
+                        selectedSkill={selectedSkill}
+                        setShowForm={setShowEditForm}
                     />
                 </ModalOverlay>
             )}

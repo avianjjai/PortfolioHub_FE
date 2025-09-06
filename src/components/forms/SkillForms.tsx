@@ -4,13 +4,10 @@ import { Skill } from "../../services/modal";
 import { addSkill, deleteSkill, updateSkill } from "../../services/api";
 import { Trash2, X } from "lucide-react";
 
-interface AddSkillFormProps {
-    setShowAddForm?: (show: boolean) => void;
-}
-
-interface EditSkillFormProps {
-    skill: Skill | null;
-    setShowEditForm?: (show: boolean) => void;
+interface AddEditSkillFormProps {
+    isAdd: boolean;
+    selectedSkill?: Skill | null;
+    setShowForm: (show: boolean) => void;
 }
 
 interface DeleteConfirmationModalProps {
@@ -18,11 +15,11 @@ interface DeleteConfirmationModalProps {
     setShowDeleteConfirmationModal?: (show: boolean) => void;
 }
 
-const AddSkillForm: React.FC<AddSkillFormProps> = ({ setShowAddForm }) => {
+const AddEditSkillForm: React.FC<AddEditSkillFormProps> = ({ isAdd, selectedSkill, setShowForm }) => {
     const [skill, setSkill] = useState({
-        name: '',
-        category: '',
-        proficiency: 0
+        name: selectedSkill?.name ?? '',
+        category: selectedSkill?.category ?? '',
+        proficiency: selectedSkill?.proficiency ?? 0
     });
 
     const [loading, setLoading] = useState(false);
@@ -31,24 +28,27 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ setShowAddForm }) => {
     const { setIsSkillLoading } = usePortfolio();
 
     useEffect(() => {
-        if (skill.name && skill.category) {
-            setIsSubmitActive(false);
-        } else {
+        if (
+            (isAdd && skill.name && skill.category) ||
+            (!isAdd && (skill.name !== selectedSkill?.name || skill.category !== selectedSkill?.category || skill.proficiency !== selectedSkill?.proficiency))
+        ) {
             setIsSubmitActive(true);
+        } else {
+            setIsSubmitActive(false);
         }
-    }, [skill.name, skill.category]);
+    }, [skill.name, skill.category, skill.proficiency]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             setLoading(true);
             e.preventDefault();
 
-            const newSkill = await addSkill(skill);
-            if (newSkill.status_code === 400) {
-                throw new Error(newSkill.message ?? 'Failed to add skill');
+            const response = isAdd ? await addSkill(skill) : await updateSkill(selectedSkill?._id ?? '', skill);
+            if (response.status_code === 400) {
+                throw new Error(response.message ?? 'Failed to add skill');
             }
             
-            setShowAddForm?.(false);
+            setShowForm(false);
             setIsSkillLoading(true);
         } catch (error: any) {
             setError(error.message ?? '');
@@ -96,108 +96,19 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ setShowAddForm }) => {
                 <button 
                     type="submit" 
                     className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
-                    disabled={isSubmitActive}
+                    disabled={!isSubmitActive}
                 >
-                    {loading ? 'Adding...' : 'Add Skill'}
+                    {isAdd ? 
+                        (loading ? 'Adding...' : 'Add Skill') 
+                        : 
+                        (loading ? 'Updating...' : 'Update Skill')
+                    }
                 </button>
                 <button 
                     type="button"
                     className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                     disabled={loading}
-                    onClick={() => setShowAddForm?.(false)}
-                >
-                    Cancel
-                </button>
-            </div>
-        </form>
-    )
-}
-
-const EditSkillForm: React.FC<EditSkillFormProps> = ({ skill, setShowEditForm }) => {
-    const [selectedSkill, setSelectedSkill] = useState({
-        name: skill?.name ?? '',
-        category: skill?.category ?? '',
-        proficiency: skill?.proficiency ?? 0
-    });
-
-    const [loading, setLoading] = useState(false);
-    const [isSubmitActive, setIsSubmitActive] = useState(false);
-    const [error, setError] = useState('');
-    const { setIsSkillLoading } = usePortfolio();
-
-    useEffect(() => {
-        if (selectedSkill.name === skill?.name && selectedSkill.category === skill?.category && selectedSkill.proficiency === skill?.proficiency) {
-            setIsSubmitActive(true);
-        } else {
-            setIsSubmitActive(false);
-        }
-    }, [selectedSkill.name, selectedSkill.category, selectedSkill.proficiency]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        try {
-            setLoading(true);
-            e.preventDefault();
-            const updatedSkill = await updateSkill(skill?._id ?? '', selectedSkill);
-            if (updatedSkill.status_code === 400) {
-                throw new Error(updatedSkill.message ?? 'Failed to update skill');
-            }   
-            setShowEditForm?.(false);
-            setIsSkillLoading(true);
-        } catch (error: any) {
-            setError(error.message ?? '');
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return (
-        <form 
-            className="space-y-4 max-w-md"
-            onSubmit={handleSubmit}
-        >
-            <input 
-                type="text"
-                name="skillName"
-                placeholder="Skill Name"
-                className="w-full px-4 py-2 rounded border"
-                value={selectedSkill.name}
-                onChange={e => setSelectedSkill(s => ({ ...s, name: e.target.value }))}
-                required
-            />
-            <input 
-                type="text"
-                name="category"
-                placeholder="Category"
-                className="w-full px-4 py-2 rounded border"
-                value={selectedSkill.category}
-                onChange={e => setSelectedSkill(s => ({ ...s, category: e.target.value }))}
-                required
-            />
-            <div>
-                <label className="block mb-1">Proficiency: {selectedSkill.proficiency}%</label>
-                <input 
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={selectedSkill.proficiency}
-                    onChange={e => setSelectedSkill(s => ({ ...s, proficiency: Number(e.target.value) }))}
-                    className="w-full"
-                />
-            </div>
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-            <div className="flex gap-2">
-                <button 
-                    type="submit" 
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
-                    disabled={isSubmitActive}
-                >
-                    {loading ? 'Updating...' : 'Update Skill'}
-                </button>
-                <button 
-                    type="button"
-                    className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-                    disabled={loading}
-                    onClick={() => setShowEditForm?.(false)}
+                    onClick={() => setShowForm(false)}
                 >
                     Cancel
                 </button>
@@ -277,4 +188,4 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ skill
     )
 }
 
-export { AddSkillForm, EditSkillForm, DeleteConfirmationModal };
+export { AddEditSkillForm, DeleteConfirmationModal };
