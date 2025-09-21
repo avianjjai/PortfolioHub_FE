@@ -1,17 +1,3 @@
-export interface Project {
-    id: number;
-    title: string;
-    description: string;
-    technologies: string[];
-    live_url?: string;
-    code_url?: string;
-    image_url?: string;
-    start_date: string;
-    end_date?: string;
-    created_at: string;
-    updated_at: string;
-}
-
 export interface Skill {
     _id?: string | null;
     name: string;
@@ -24,42 +10,65 @@ export interface Skill {
     message?: string;
 }
 
-export interface Experience {
-    id: number;
+export interface Project {
+    _id?: string | null;
     title: string;
-    company: string;
-    period: string;
     description: string;
     technologies: string[];
-    created_at: string;
-    updated_at: string;
-    start_date: string;
-    end_date?: string;
+    live_url?: string;
+    code_url?: string;
+    image_url?: string;
+    start_date: any;
+    end_date?: any;
+    created_at?: string;
+    updated_at?: string;
+
+    status_code?: number;
+    message?: string;
+}
+
+export interface Experience {
+    _id?: string | null;
+    title: string;
+    company: string;
+    description: string;
+    technologies: string[];
+    created_at?: string;
+    updated_at?: string;
+    start_date: any;
+    end_date?: any;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface Education {
-    id: number;
+    _id?: string | null;
     degree: string;
     institution: string;
-    start_date: string;
-    end_date: string;
+    start_date: any;
+    end_date?: any;
     description: string;
-    created_at: string;
-    updated_at: string;
-    technologies: string[];
+    created_at?: string;
+    updated_at?: string;
+    
+    status_code?: number;
+    message?: string;
 }
 
 export interface Certification {
-    id: number;
+    _id?: string | null;
     name: string;
     issuer: string;
-    date: string;
     description: string;
-    created_at: string;
-    updated_at: string;
-    issue_date: string;
+    created_at?: string;
+    updated_at?: string;
+    issue_date: any;
     credential_url?: string;
     credential_id?: string;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface Portfolio {
@@ -72,6 +81,9 @@ export interface Portfolio {
     portfolio_certifications?: string[];
     portfolio_awards?: string[];
     title?: string;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface Message {
@@ -84,17 +96,23 @@ export interface Message {
     read: boolean;
     senderUserId?: string;
     recipientUserId?: string;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface Award {
-    id: number;
+    _id?: string | null;
     name: string;
     issuer: string;
-    issue_date: string;
+    issue_date: any;
     description: string;
     category: string;
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface Message {
@@ -107,6 +125,9 @@ export interface Message {
     read: boolean;
     senderUserId?: string;
     recipientUserId?: string;
+
+    status_code?: number;
+    message?: string;
 }
 
 export interface MessageCount {

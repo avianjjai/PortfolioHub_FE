@@ -1,6 +1,10 @@
-import { Edit2, Trash } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePortfolio } from "../../context/PortfolioContext";
+import { useState } from "react";
+import { Education } from "../../services/modal";
+import { ModalOverlay } from "../forms/ModalOverlay";
+import { DeleteConfirmationModal, EducationAddEditForm } from "../forms/EducationForms";
 
 const getEducationDuration = (startDate: string, endDate: string) => {
     if (startDate && endDate) {
@@ -14,16 +18,41 @@ const getEducationDuration = (startDate: string, endDate: string) => {
 
 const EducationSection = () => {
     const { isAuthenticated } = useAuth();
-    const { educations, getEducations, isEducationLoaded } = usePortfolio();
+    const { educations } = usePortfolio();
+    const [selectedEducation, setSelectedEducation] = useState<Education | null>(null);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     
     return (
         <section id='education' className='gradient-blue-purple py-20'>
+            {showAddForm && (
+                <ModalOverlay onClose={() => setShowAddForm(false)}>
+                    <EducationAddEditForm isAdd={true} setShowForm={setShowAddForm} />
+                </ModalOverlay>
+            )}
+            
+            {showEditForm && (
+                <ModalOverlay onClose={() => setShowEditForm(false)}>
+                    <EducationAddEditForm isAdd={false} setShowForm={setShowEditForm} selectedEducation={selectedEducation} />
+                </ModalOverlay>
+            )}
+            
+            {showDeleteConfirmationModal && (
+                <ModalOverlay onClose={() => setShowDeleteConfirmationModal(false)}>
+                    <DeleteConfirmationModal education={selectedEducation} setShowDeleteConfirmationModal={setShowDeleteConfirmationModal} />
+                </ModalOverlay>
+            )}
+            
             <div className="container mx-auto px-4">
                 <h2 className="text-4xl font-bold text-white mb-12 text-center">Education</h2>
                 <div className="w-full">
                     {isAuthenticated && (
                         <div className="mb-8 text-center">
-                            <button className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition-colors mb-4 border border-white/30">
+                            <button 
+                                className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition-colors mb-4 border border-white/30"
+                                onClick={() => setShowAddForm(true)}
+                            >
                                 Add Education
                             </button>
                         </div>
@@ -37,11 +66,23 @@ const EducationSection = () => {
                                 >
                                     {isAuthenticated && (
                                         <div className="absolute top-4 right-4 flex gap-2">
-                                            <button className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                                            <button 
+                                                className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                onClick={() => {
+                                                    setSelectedEducation(education);
+                                                    setShowEditForm(true);
+                                                }}
+                                            >
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/30 rounded-full transition-colors opacity-0 group-hover:opacity-100 border border-red-500/30 hover:border-red-400/50">
-                                                <Trash size={16} />
+                                            <button 
+                                                className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                onClick={() => {
+                                                    setSelectedEducation(education);
+                                                    setShowDeleteConfirmationModal(true);
+                                                }}
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     )}

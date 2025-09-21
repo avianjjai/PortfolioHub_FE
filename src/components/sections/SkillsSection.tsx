@@ -4,7 +4,7 @@ import { addSkill, getSkillsByUserId } from "../../services/api";
 import { usePortfolio } from "../../context/PortfolioContext";
 import { Edit2, Trash2, X } from "lucide-react";
 import { AddEditSkillForm, DeleteConfirmationModal } from "../forms/SkillForms";
-import ModalOverlay from "../forms/ModalOverlay";
+import { ModalOverlaySkills } from "../forms/ModalOverlay";
 import { Skill } from "../../services/modal";
 
 const SkillsSection: React.FC = () => {
@@ -45,32 +45,32 @@ const SkillsSection: React.FC = () => {
     return (
         <section id='skills' className='gradient-orange-yellow py-20'>
             {showAddForm && (
-                <ModalOverlay onClose={() => setShowAddForm(false)}>
+                <ModalOverlaySkills onClose={() => setShowAddForm(false)}>
                     <AddEditSkillForm
                         isAdd={true}
                         selectedSkill={null}
                         setShowForm={setShowAddForm}
                     />
-                </ModalOverlay>
+                </ModalOverlaySkills>
             )}
 
             {showEditForm && (
-                <ModalOverlay onClose={() => setShowEditForm(false)}>
+                <ModalOverlaySkills onClose={() => setShowEditForm(false)}>
                     <AddEditSkillForm
                         isAdd={false}
                         selectedSkill={selectedSkill}
                         setShowForm={setShowEditForm}
                     />
-                </ModalOverlay>
+                </ModalOverlaySkills>
             )}
 
             {showDeleteConfirmationModal && (
-                <ModalOverlay onClose={() => setShowDeleteConfirmationModal(false)}>
+                <ModalOverlaySkills onClose={() => setShowDeleteConfirmationModal(false)}>
                     <DeleteConfirmationModal
                         skill={selectedSkill}
                         setShowDeleteConfirmationModal={setShowDeleteConfirmationModal}
                     />
-                </ModalOverlay>
+                </ModalOverlaySkills>
             )}
 
             <div className="container mx-auto px-4">

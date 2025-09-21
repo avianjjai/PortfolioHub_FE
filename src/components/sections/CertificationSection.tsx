@@ -1,7 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePortfolio } from "../../context/PortfolioContext";
 import { useAuth } from "../../context/AuthContext";
 import { Edit2, Eye, Trash2 } from "lucide-react";
+import { Certification } from "../../services/modal";
+import { ModalOverlay } from "../forms/ModalOverlay";
+import { CertificateAddEditForm, DeleteConfirmationModal } from "../forms/CertificateForm";
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -13,16 +16,52 @@ const formatDate = (dateString: string) => {
 
 const CertificationSection = () => {
     const { isAuthenticated } = useAuth();
-    const { certifications, isCertificationLoaded, getCertifications } = usePortfolio();
+    const { certifications } = usePortfolio();
+    const [selectedCertificate, setSelectedCertificate] = useState<Certification | null>(null);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 
     return (
         <section id="certifications" className="bg-blue-500 py-20">
+            {showAddForm && (
+                <ModalOverlay onClose={() => setShowAddForm(false)}>
+                    <CertificateAddEditForm 
+                        isAdd={true} 
+                        setShowForm={setShowAddForm}
+                        selectedCertificate={null}
+                    />
+                </ModalOverlay>
+            )}
+
+            {showEditForm && (
+                <ModalOverlay onClose={() => setShowEditForm(false)}>
+                    <CertificateAddEditForm 
+                        isAdd={false} 
+                        setShowForm={setShowEditForm} 
+                        selectedCertificate={selectedCertificate} 
+                    />
+                </ModalOverlay>
+            )}
+
+            {showDeleteConfirmationModal && (
+                <ModalOverlay onClose={() => setShowDeleteConfirmationModal(false)}>
+                    <DeleteConfirmationModal 
+                        certificate={selectedCertificate} 
+                        setShowDeleteConfirmationModal={setShowDeleteConfirmationModal} 
+                    />
+                </ModalOverlay>
+            )}
+
             <div className="container mx-auto px-4">
                 <h2 className="text-4xl font-bold text-white mb-12 text-center">Certifications</h2>
                 <div className="w-full">
                     {isAuthenticated && (
                         <div className="mb-8 text-center">
-                            <button className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition-colors mb-4 border border-white/30">
+                            <button 
+                                className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition-colors mb-4 border border-white/30"
+                                onClick={() => setShowAddForm(true)}
+                            >
                                 Add Certification
                             </button>
                         </div>
@@ -31,15 +70,27 @@ const CertificationSection = () => {
                     <div className="w-full space-y-8">
                         {certifications.map((certification) => (
                             <div 
-                                key={certification.id}
+                                key={certification._id}
                                 className="bg-white/20 rounded-2xl p-8 backdrop-blur-sm border border-white/30 relative group"
                             >
                                 {isAuthenticated && (
                                     <div className="absolute top-4 right-4 flex gap-2">
-                                        <button className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                                        <button 
+                                            className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                            onClick={() => {
+                                                setSelectedCertificate(certification);
+                                                setShowEditForm(true);
+                                            }}
+                                        >
                                             <Edit2 size={16} />
                                         </button>
-                                        <button className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                                        <button 
+                                            className="p-2 text-white/60 hover:text-white/90 hover:bg-white/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                            onClick={() => {
+                                                setSelectedCertificate(certification);
+                                                setShowDeleteConfirmationModal(true);
+                                            }}
+                                        >
                                             <Trash2 size={16} />
                                         </button>
                                     </div>

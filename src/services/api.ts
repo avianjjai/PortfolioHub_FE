@@ -192,9 +192,10 @@ export const getProjectById = async(projectId: string): Promise<Project> => {
  * @param project - Project object containing title, description, technologies, live_url, code_url, image_url, start_date, and end_date
  * @returns Project object if successful, throws error if failed
  */
-export const addProject = async(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Promise<Project> => {
+export const addProject = async(project: Project): Promise<Project> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/projects', project);
+        const response = await authenticatedApi(token).post('/projects', project);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to add project. Please try again.');
@@ -208,8 +209,9 @@ export const addProject = async(project: Omit<Project, 'id' | 'created_at' | 'up
  * @returns Project object if successful, throws error if failed
  */
 export const updateProject = async(projectId: string, project: Project): Promise<Project> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.put(`/projects/${projectId}`, project);
+        const response = await authenticatedApi(token).put(`/projects/${projectId}`, project);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to update project. Please try again.');
@@ -222,8 +224,9 @@ export const updateProject = async(projectId: string, project: Project): Promise
  * @returns Project object if successful, throws error if failed
  */
 export const deleteProject = async(projectId: string): Promise<Project> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.delete(`/projects/${projectId}`);
+        const response = await authenticatedApi(token).delete(`/projects/${projectId}`);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to delete project. Please try again.');
@@ -263,9 +266,10 @@ export const getExperienceById = async(experienceId: string): Promise<Experience
  * @param experience - Experience object containing title, company, description, technologies, start_date, and end_date
  * @returns Experience object if successful, throws error if failed
  */
-export const addExperience = async(experience: Omit<Experience, 'id' | 'created_at' | 'updated_at'>): Promise<Experience> => {
+export const addExperience = async(experience: Experience): Promise<Experience> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/experiences', experience);
+        const response = await authenticatedApi(token).post('/experiences', experience);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to add experience. Please try again.');
@@ -279,8 +283,9 @@ export const addExperience = async(experience: Omit<Experience, 'id' | 'created_
  * @returns Experience object if successful, throws error if failed
  */
 export const updateExperience = async(experienceId: string, experience: Experience): Promise<Experience> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.put(`/experiences/${experienceId}`, experience);
+        const response = await authenticatedApi(token).put(`/experiences/${experienceId}`, experience);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to update experience. Please try again.');
@@ -293,8 +298,9 @@ export const updateExperience = async(experienceId: string, experience: Experien
  * @returns Experience object if successful, throws error if failed
  */
 export const deleteExperience = async(experienceId: string): Promise<Experience> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.delete(`/experiences/${experienceId}`);
+        const response = await authenticatedApi(token).delete(`/experiences/${experienceId}`);
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to delete experience. Please try again.');
@@ -334,9 +340,10 @@ export const getEducationById = async(educationId: string): Promise<Education> =
  * @param education - Education object containing degree, institution, start_date, end_date, and description
  * @returns Education object if successful, throws error if failed
  */
-export const addEducation = async(education: Omit<Education, 'id' | 'created_at' | 'updated_at'>): Promise<Education> => {
+export const addEducation = async(education: Education): Promise<Education> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/educations', education);
+        const response = await authenticatedApi(token).post('/educations', education);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to add education. Please try again.');
@@ -350,8 +357,9 @@ export const addEducation = async(education: Omit<Education, 'id' | 'created_at'
  * @returns Education object if successful, throws error if failed
  */
 export const updateEducation = async(educationId: string, education: Education): Promise<Education> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.put(`/educations/${educationId}`, education);
+        const response = await authenticatedApi(token).put(`/educations/${educationId}`, education);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to update education. Please try again.');
@@ -364,8 +372,9 @@ export const updateEducation = async(educationId: string, education: Education):
  * @returns Education object if successful, throws error if failed
  */
 export const deleteEducation = async(educationId: string): Promise<Education> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.delete(`/educations/${educationId}`);
+        const response = await authenticatedApi(token).delete(`/educations/${educationId}`);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to delete education. Please try again.');
@@ -405,9 +414,10 @@ export const getCertificationById = async(certificationId: string): Promise<Cert
  * @param certification - Certification object containing name, issuer, date, and description
  * @returns Certification object if successful, throws error if failed
  */
-export const addCertification = async(certification: Omit<Certification, 'id' | 'created_at' | 'updated_at'>): Promise<Certification> => {
+export const addCertification = async(certification: Certification): Promise<Certification> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/certifications', certification);
+        const response = await authenticatedApi(token).post('/certifications', certification);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to add certification. Please try again.');
@@ -421,8 +431,9 @@ export const addCertification = async(certification: Omit<Certification, 'id' | 
  * @returns Certification object if successful, throws error if failed
  */
 export const updateCertification = async(certificationId: string, certification: Certification): Promise<Certification> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.put(`/certifications/${certificationId}`, certification);
+        const response = await authenticatedApi(token).put(`/certifications/${certificationId}`, certification);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to update certification. Please try again.');
@@ -435,8 +446,9 @@ export const updateCertification = async(certificationId: string, certification:
  * @returns Certification object if successful, throws error if failed
  */
 export const deleteCertification = async(certificationId: string): Promise<Certification> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.delete(`/certifications/${certificationId}`);
+        const response = await authenticatedApi(token).delete(`/certifications/${certificationId}`);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to delete certification. Please try again.');
@@ -477,8 +489,9 @@ export const getAwardById = async(awardId: string): Promise<Award> => {
  * @returns Award object if successful, throws error if failed
  */
 export const addAward = async(award: Omit<Award, 'id' | 'created_at' | 'updated_at'>): Promise<Award> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/awards', award);
+        const response = await authenticatedApi(token).post('/awards', award);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to add award. Please try again.');
@@ -492,8 +505,9 @@ export const addAward = async(award: Omit<Award, 'id' | 'created_at' | 'updated_
  * @returns Award object if successful, throws error if failed
  */
 export const updateAward = async(awardId: string, award: Award): Promise<Award> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.put(`/awards/${awardId}`, award);
+        const response = await authenticatedApi(token).put(`/awards/${awardId}`, award);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to update award. Please try again.');
@@ -506,8 +520,9 @@ export const updateAward = async(awardId: string, award: Award): Promise<Award> 
  * @returns Award object if successful, throws error if failed
  */
 export const deleteAward = async(awardId: string): Promise<Award> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.delete(`/awards/${awardId}`);
+        const response = await authenticatedApi(token).delete(`/awards/${awardId}`);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to delete award. Please try again.');
@@ -547,8 +562,9 @@ export const getContactById = async(contactId: string): Promise<Message> => {
  * @returns Message object if successful, throws error if failed
  */
 export const sendAuthenticatedUserMessage = async(message: Omit<Message, 'id' | 'created_at' | 'updated_at'>): Promise<Message> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.post('/message', message);
+        const response = await authenticatedApi(token).post('/message', message);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to send message. Please try again.');

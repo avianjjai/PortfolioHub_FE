@@ -13,32 +13,38 @@ interface PortfolioContextType {
     projects: Project[];
     setProjects: (projects: Project[]) => void;
     getProjects: (currentUserId: string) => Promise<void>;
-    isProjectLoaded: boolean;
+    isProjectLoading: boolean;
+    setIsProjectLoading: (isProjectLoading: boolean) => void;
     
     experiences: Experience[];
     setExperiences: (experiences: Experience[]) => void;
     getExperiences: (currentUserId: string) => Promise<void>;
-    isExperienceLoaded: boolean;
+    isExperienceLoading: boolean;
+    setIsExperienceLoading: (isExperienceLoading: boolean) => void;
     
     educations: Education[];
     setEducations: (educations: Education[]) => void;
     getEducations: (currentUserId: string) => Promise<void>;
-    isEducationLoaded: boolean;
+    isEducationLoading: boolean;
+    setIsEducationLoading: (isEducationLoading: boolean) => void;
     
     certifications: Certification[];
     setCertifications: (certifications: Certification[]) => void;
     getCertifications: (currentUserId: string) => Promise<void>;
-    isCertificationLoaded: boolean;
+    isCertificationLoading: boolean;
+    setIsCertificationLoading: (isCertificationLoading: boolean) => void;
 
     awards: Award[];
     setAwards: (awards: Award[]) => void;
     getAwards: (currentUserId: string) => Promise<void>;
-    isAwardLoaded: boolean;
+    isAwardLoading: boolean;
+    setIsAwardLoading: (isAwardLoading: boolean) => void;
 
     messages: Message[];
     setMessages: (messages: Message[]) => void;
     getMessages: () => Promise<void>;
-    isMessageLoaded: boolean;
+    isMessageLoading: boolean;
+    setIsMessageLoading: (isMessageLoading: boolean) => void;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -54,42 +60,42 @@ export const PortfolioProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const [projects, setProjects] = useState<Project[]>([]);
-    const [isProjectLoaded, setIsProjectLoaded] = useState(false);
+    const [isProjectLoading, setIsProjectLoading] = useState(true);
     const getProjects = async (currentUserId: string) => {
         const projects = await getProjectsByUserId(currentUserId);
         setProjects(projects);
     }
 
     const [experiences, setExperiences] = useState<Experience[]>([]);
-    const [isExperienceLoaded, setIsExperienceLoaded] = useState(false);
+    const [isExperienceLoading, setIsExperienceLoading] = useState(true);
     const getExperiences = async (currentUserId: string) => {
         const experiences = await getExperiencesByUserId(currentUserId);
         setExperiences(experiences);
     }
 
     const [educations, setEducations] = useState<Education[]>([]);
-    const [isEducationLoaded, setIsEducationLoaded] = useState(false);
+    const [isEducationLoading, setIsEducationLoading] = useState(true);
     const getEducations = async (currentUserId: string) => {
         const educations = await getEducationsByUserId(currentUserId);
         setEducations(educations);
     }
 
     const [certifications, setCertifications] = useState<Certification[]>([]);
-    const [isCertificationLoaded, setIsCertificationLoaded] = useState(false);
+    const [isCertificationLoading, setIsCertificationLoading] = useState(true);
     const getCertifications = async (currentUserId: string) => {
         const certifications = await getCertificationsByUserId(currentUserId);
         setCertifications(certifications);
     }
 
     const [awards, setAwards] = useState<Award[]>([]);
-    const [isAwardLoaded, setIsAwardLoaded] = useState(false);
+    const [isAwardLoading, setIsAwardLoading] = useState(true);
     const getAwards = async (currentUserId: string) => {
         const awards = await getAwardsByUserId(currentUserId);
         setAwards(awards);
     }
 
     const [messages, setMessages] = useState<Message[]>([]);
-    const [isMessageLoaded, setIsMessageLoaded] = useState(false);
+    const [isMessageLoading, setIsMessageLoading] = useState(true);
     const getMessages = async () => {
         const messages = await getReceivedMessagesList();
         setMessages(messages);
@@ -101,50 +107,50 @@ export const PortfolioProvider = ({ children }: { children: ReactNode }) => {
                 getSkills(currentUser.id);
                 setIsSkillLoading(false);
             }
-            if (!isProjectLoaded) {
+            if (isProjectLoading) {
                 getProjects(currentUser.id);
-                setIsProjectLoaded(true);
+                setIsProjectLoading(false);
             }
-            if (!isExperienceLoaded) {
+            if (isExperienceLoading) {
                 getExperiences(currentUser.id);
-                setIsExperienceLoaded(true);
+                setIsExperienceLoading(false);
             }
-            if (!isEducationLoaded) {
+            if (isEducationLoading) {
                 getEducations(currentUser.id);
-                setIsEducationLoaded(true);
+                setIsEducationLoading(false);
             }
-            if (!isCertificationLoaded) {
+            if (isCertificationLoading) {
                 getCertifications(currentUser.id);
-                setIsCertificationLoaded(true);
+                setIsCertificationLoading(false);
             }
-            if (!isAwardLoaded) {
+            if (isAwardLoading) {
                 getAwards(currentUser.id);
-                setIsAwardLoaded(true);
+                setIsAwardLoading(false);
             }
-            if (!isMessageLoaded) {
+            if (isMessageLoading) {
                 getMessages();
-                setIsMessageLoaded(true);
+                setIsMessageLoading(false);
             }
         }
     }, [
-        skills, isSkillLoading, getSkills, 
-        projects, isProjectLoaded, getProjects, 
-        experiences, isExperienceLoaded, getExperiences, 
-        educations, isEducationLoaded, getEducations, 
-        certifications, isCertificationLoaded, getCertifications, 
-        awards, isAwardLoaded, getAwards,
-        messages, isMessageLoaded, getMessages,
+        skills, isSkillLoading, getSkills, setIsSkillLoading,
+        projects, isProjectLoading, getProjects, setIsProjectLoading,
+        experiences, isExperienceLoading, getExperiences, setIsExperienceLoading,   
+        educations, isEducationLoading, getEducations, setIsEducationLoading,
+        certifications, isCertificationLoading, getCertifications, setIsCertificationLoading,
+        awards, isAwardLoading, getAwards, setIsAwardLoading,
+        messages, isMessageLoading, getMessages, setIsMessageLoading,
     ]);
 
     return (
         <PortfolioContext.Provider value={{ 
             skills, isSkillLoading, getSkills, setSkills, setIsSkillLoading,
-            projects, isProjectLoaded, getProjects, setProjects, 
-            experiences, isExperienceLoaded, getExperiences, setExperiences, 
-            educations, isEducationLoaded, getEducations, setEducations, 
-            certifications, isCertificationLoaded, getCertifications, setCertifications, 
-            awards, isAwardLoaded, getAwards, setAwards,
-            messages, isMessageLoaded, getMessages, setMessages,
+            projects, isProjectLoading, getProjects, setProjects, setIsProjectLoading,
+            experiences, isExperienceLoading, getExperiences, setExperiences, setIsExperienceLoading,
+            educations, isEducationLoading, getEducations, setEducations, setIsEducationLoading,
+            certifications, isCertificationLoading, getCertifications, setCertifications, setIsCertificationLoading,
+            awards, isAwardLoading, getAwards, setAwards, setIsAwardLoading,
+            messages, isMessageLoading, getMessages, setMessages, setIsMessageLoading,
         }}>
             {children}
         </PortfolioContext.Provider>
