@@ -1,8 +1,9 @@
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Trophy } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePortfolio } from "../../context/PortfolioContext";
 import { ModalOverlay } from "../forms/ModalOverlay";
-import { AwardAddEditForm, DeleteConfirmationModal } from "../forms/AwardForms";
+import { AwardAddEditForm } from "../forms/AwardForms";
+import DeleteConfirmationModal from "../forms/DeleteConfirmationModal";
 import { useState } from "react";
 import { Award } from "../../services/modal";
 
@@ -20,7 +21,7 @@ const AwardsSection = () => {
     const [selectedAward, setSelectedAward] = useState<Award | null>(null);
     
     return (
-        <section id='awards' className='bg-purple-500 py-20'>
+        <section id='awards' className='gradient-purple-pink py-20'>
             
             {showAddForm && (
                 <ModalOverlay onClose={() => setShowAddForm(false)}>
@@ -37,14 +38,19 @@ const AwardsSection = () => {
 
             {showDeleteConfirmationModal && (
                 <ModalOverlay onClose={() => setShowDeleteConfirmationModal(false)}>
-                    <DeleteConfirmationModal award={selectedAward} setShowDeleteConfirmationModal={setShowDeleteConfirmationModal} />
+                    <DeleteConfirmationModal
+                        setShowDeleteModal={setShowDeleteConfirmationModal}
+                        data={selectedAward}
+                        dataType="award"
+                        setSelectedData={setSelectedAward}
+                    />
                 </ModalOverlay>
             )}
 
             <div className="container mx-auto px-4">
                 <h2 className="text-4xl font-bold text-white mb-12 text-center">Awards & Recognition</h2>
                 <div className="w-full text-center">
-                    {isAuthenticated && (
+                    {isAuthenticated && awards.length > 0 && (
                         <button 
                             className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition-colors mb-4 border border-white/30"
                             onClick={() => setShowAddForm(true)}
@@ -53,8 +59,33 @@ const AwardsSection = () => {
                         </button>
                     )}
 
-                    <div className="w-full space-y-8">
-                        {awards.map((award) => (
+                    {awards.length === 0 ? (
+                        <div className="bg-white/20 rounded-3xl p-10 backdrop-blur-sm border border-white/30 text-center max-w-3xl mx-auto relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 opacity-50"></div>
+                            <div className="relative z-10">
+                                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-white/30 to-white/10 rounded-full mb-6 shadow-lg border-2 border-white/40">
+                                    <Trophy className="w-12 h-12 text-white" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-3">No Awards Added Yet</h3>
+                                <p className="text-white/90 text-base mb-6 leading-relaxed max-w-xl mx-auto">
+                                    {isAuthenticated 
+                                        ? "Celebrate your achievements! Add your awards and recognitions to showcase your outstanding accomplishments."
+                                        : "Awards will be displayed here once they are added to the portfolio."
+                                    }
+                                </p>
+                                {isAuthenticated && (
+                                    <button
+                                        className="px-8 py-3 bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-white/40 hover:to-white/30 transition-all duration-300 border border-white/40 shadow-lg hover:shadow-xl hover:scale-105 text-base"
+                                        onClick={() => setShowAddForm(true)}
+                                    >
+                                        Add Your First Award
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-full space-y-8">
+                            {awards.map((award) => (
                             <div 
                                 key={award._id} 
                                 className="bg-white/20 rounded-2xl p-8 backdrop-blur-sm border border-white/30 relative group"
@@ -107,7 +138,8 @@ const AwardsSection = () => {
                                 </div>
                             </div>
                         ))}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>

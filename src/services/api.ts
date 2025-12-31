@@ -11,15 +11,133 @@ const api = axios.create({
     timeout: env.API_TIMEOUT,
 });
 
+// Helper function to decode JWT token and check expiry
+const isTokenExpiringSoon = (token: string): boolean => {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const exp = payload.exp * 1000; // Convert to milliseconds
+        const now = Date.now();
+        const timeUntilExpiry = exp - now;
+        // Refresh if token expires in less than 5 minutes (300000 ms)
+        return timeUntilExpiry < 300000;
+    } catch (error) {
+        return false;
+    }
+};
+
+// Flag to prevent recursive refresh calls
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
 // Create axios authenticated instance with the passed token
 const authenticatedApi = (token: string) => {
-    return axios.create({
+    const instance = axios.create({
         baseURL: getApiBaseUrl(),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
     });
+
+    // Request interceptor to refresh token if expiring soon
+    instance.interceptors.request.use(
+        async (config) => {
+            // Skip interceptor for refresh endpoint to prevent infinite loop
+            if (config.url?.includes('/auth/refresh')) {
+                return config;
+            }
+
+            const currentToken = localStorage.getItem('access_token');
+            if (currentToken && isTokenExpiringSoon(currentToken) && !isRefreshing) {
+                try {
+                    // Use existing refresh promise if one is in progress
+                    if (!refreshPromise) {
+                        isRefreshing = true;
+                        refreshPromise = refreshToken();
+                    }
+                    const newToken = await refreshPromise;
+                    if (newToken) {
+                        config.headers.Authorization = `Bearer ${newToken}`;
+                    }
+                    // Reset after refresh completes
+                    isRefreshing = false;
+                    refreshPromise = null;
+                } catch (error) {
+                    // If refresh fails, continue with original token
+                    console.error('Token refresh failed:', error);
+                    isRefreshing = false;
+                    refreshPromise = null;
+                }
+            }
+            return config;
+        },
+        (error) => {
+            return Promise.reject(error);
+        }
+    );
+
+    // Response interceptor to handle 401 and refresh token
+    instance.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+            // Skip interceptor for refresh endpoint to prevent infinite loop
+            if (originalRequest.url?.includes('/auth/refresh')) {
+                return Promise.reject(error);
+            }
+
+            if (error.response?.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+                try {
+                    // Use existing refresh promise if one is in progress
+                    if (!refreshPromise) {
+                        isRefreshing = true;
+                        refreshPromise = refreshToken();
+                    }
+                    const newToken = await refreshPromise;
+                    if (newToken) {
+                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        // Reset after refresh completes
+                        isRefreshing = false;
+                        refreshPromise = null;
+                        return instance(originalRequest);
+                    }
+                    // Reset if refresh failed
+                    isRefreshing = false;
+                    refreshPromise = null;
+                } catch (refreshError) {
+                    localStorage.removeItem('access_token');
+                    isRefreshing = false;
+                    refreshPromise = null;
+                    return Promise.reject(refreshError);
+                }
+            }
+            return Promise.reject(error);
+        }
+    );
+
+    return instance;
+}
+
+export const getUserByUserId = async(userId: string): Promise<any> => {
+    try {
+        const response = await api.get(`/user/${userId}`);
+        return response.data;
+    } catch(error: any) {
+        throw new Error('Failed to get user. Please try again.');
+    }
+}
+
+// Increment visitor count
+export const incrementVisitorCount = async(userId: string): Promise<any> => {
+    try {
+        const response = await api.post(`/user/${userId}/increment-visitor`);
+        return response.data;
+    } catch(error: any) {
+        // Silently fail - visitor count is not critical
+        console.error('Failed to increment visitor count:', error);
+        return null;
+    }
 }
 
 // Login API Call
@@ -45,44 +163,89 @@ export const login = async (username: string, password: string) => {
 };
 
 // Register API Call
-export const register = async (email: string, password: string) => {
+export const register = async (user: { email: string; password: string; username: string }) => {
     try {
-        const response = await api.post(
-            `${getApiBaseUrl()}/auth/register`,
-            { 
-                email: email,
-                password: password,
-                username: email
-            },
-            { 
-                headers: { 
-                    'Content-Type': 'application/json' 
-                } 
-            }
-        );
+        const response = await api.post(`/auth/register`, user);
         return response.data;
     } catch (error: any) {
         throw error;
     }
 }
 
+// Refresh Token API Call - uses base api instance to avoid interceptor loop
+export const refreshToken = async (): Promise<string | null> => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        return null;
+    }
+    try {
+        // Use base api instance with manual token header to avoid interceptor loop
+        const response = await axios.post(
+            `${getApiBaseUrl()}/auth/refresh`,
+            {},
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            }
+        );
+        const newToken = response.data.access_token;
+        localStorage.setItem('access_token', newToken);
+        return newToken;
+    } catch (error: any) {
+        // If refresh fails, clear token and logout
+        localStorage.removeItem('access_token');
+        return null;
+    }
+}
+
+// Logout API Call
+export const logout = async (): Promise<void> => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        return;
+    }
+    try {
+        await authenticatedApi(token).post('/auth/logout');
+    } catch (error: any) {
+        // Even if logout fails, clear token on frontend
+        console.error('Logout API call failed:', error);
+    } finally {
+        // Always clear token from localStorage
+        localStorage.removeItem('access_token');
+    }
+}
+
 // Get Me API Call
 export const getMe = async () => {
-    try {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            throw new Error('No token found');
-        }
-
-        const response = await api.get(`${getApiBaseUrl()}/auth/me`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
+    const token = localStorage.getItem('access_token');
+    let response = null;
+    if (token) {
+        try {
+            response = await authenticatedApi(token).get('/auth/me');
+            // Check if response has new token in headers (if using auto-refresh)
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                // Try to refresh token on 401
+                const newToken = await refreshToken();
+                if (newToken) {
+                    // Retry the request with new token
+                    try {
+                        response = await authenticatedApi(newToken).get('/auth/me');
+                        return response.data;
+                    } catch (retryError) {
+                        localStorage.removeItem('access_token');
+                    }
+                } else {
+                    localStorage.removeItem('access_token');
+                }
             }
-        });
-        return response.data;
-    } catch (error: any) {
-        throw error;
+            return error.response?.data;
+        }
     }
+    return response;
 }
 
 /**
@@ -96,20 +259,6 @@ export const getSkillsByUserId = async(userId: string): Promise<Skill[]> => {
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to get skills. Please try again.');
-    }
-}
-
-/**
- * Get Skill by ID
- * @param skillId - ID of the skill to get
- * @returns Skill object if successful, throws error if failed
- */
-export const getSkillById = async(skillId: string): Promise<Skill> => {
-    try {
-        const response = await api.get(`/skills/${skillId}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error('Failed to get skill. Please try again.');
     }
 }
 
@@ -174,20 +323,6 @@ export const getProjectsByUserId = async(userId: string): Promise<Project[]> => 
 }
 
 /**
- * Get Project by ID
- * @param projectId - ID of the project to get
- * @returns Project object if successful, throws error if failed
- */
-export const getProjectById = async(projectId: string): Promise<Project> => {
-    try {
-        const response = await api.get(`/projects/${projectId}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error('Failed to get project. Please try again.');
-    }
-}
-
-/**
  * Add Project
  * @param project - Project object containing title, description, technologies, live_url, code_url, image_url, start_date, and end_date
  * @returns Project object if successful, throws error if failed
@@ -244,20 +379,6 @@ export const getExperiencesByUserId = async(userId: string): Promise<Experience[
         return response.data;
     } catch (error: any) {
         throw new Error('Failed to get experiences. Please try again.');
-    }
-}
-
-/**
- * Get Experience by ID
- * @param experienceId - ID of the experience to get
- * @returns Experience object if successful, throws error if failed
- */
-export const getExperienceById = async(experienceId: string): Promise<Experience> => {
-    try {
-        const response = await api.get(`/experiences/${experienceId}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error('Failed to get experience. Please try again.');
     }
 }
 
@@ -322,20 +443,6 @@ export const getEducationsByUserId = async(userId: string): Promise<Education[]>
 }
 
 /**
- * Get Education by ID
- * @param educationId - ID of the education to get
- * @returns Education object if successful, throws error if failed
- */
-export const getEducationById = async(educationId: string): Promise<Education> => {
-    try {
-        const response = await api.get(`/educations/${educationId}`);
-        return response.data;
-    } catch(error: any) {
-        throw new Error('Failed to get education. Please try again.');
-    }
-}
-
-/**
  * Add Education
  * @param education - Education object containing degree, institution, start_date, end_date, and description
  * @returns Education object if successful, throws error if failed
@@ -392,20 +499,6 @@ export const getCertificationsByUserId = async(userId: string): Promise<Certific
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to get certifications. Please try again.');
-    }
-}
-
-/**
- * Get Certification by ID
- * @param certificationId - ID of the certification to get
- * @returns Certification object if successful, throws error if failed
- */
-export const getCertificationById = async(certificationId: string): Promise<Certification> => {
-    try {
-        const response = await api.get(`/certifications/${certificationId}`);
-        return response.data;
-    } catch(error: any) {
-        throw new Error('Failed to get certification. Please try again.');
     }
 }
 
@@ -470,20 +563,6 @@ export const getAwardsByUserId = async(userId: string): Promise<Award[]> => {
 }
 
 /**
- * Get Award by ID
- * @param awardId - ID of the award to get
- * @returns Award object if successful, throws error if failed
- */
-export const getAwardById = async(awardId: string): Promise<Award> => {
-    try {
-        const response = await api.get(`/awards/${awardId}`);
-        return response.data;
-    } catch(error: any) {
-        throw new Error('Failed to get award. Please try again.');
-    }
-}
-
-/**
  * Add Award
  * @param award - Award object containing name, description, and date
  * @returns Award object if successful, throws error if failed
@@ -535,7 +614,7 @@ export const deleteAward = async(awardId: string): Promise<Award> => {
  */
 export const getMessages = async(): Promise<Message[]> => {
     try {
-        const response = await api.get('/messages');
+        const response = await api.get('/message');
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to get messages. Please try again.');
@@ -558,13 +637,17 @@ export const getContactById = async(contactId: string): Promise<Message> => {
 
 /**
  * Send Authenticated User Message
- * @param message - Message object containing messageSubject, messageContent, and recipientUserId
+ * @param message - Message object containing messageSubject, messageContent, and recipientEmail
  * @returns Message object if successful, throws error if failed
  */
-export const sendAuthenticatedUserMessage = async(message: Omit<Message, 'id' | 'created_at' | 'updated_at'>): Promise<Message> => {
+export const sendAuthenticatedUserMessage = async(message: {
+    messageSubject?: string;  // Optional subject, backend will provide default if not provided
+    messageContent: string;
+    recipientEmail: string;
+}): Promise<Message> => {
     const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await authenticatedApi(token).post('/message', message);
+        const response = await authenticatedApi(token).post('/message/send', message);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to send message. Please try again.');
@@ -576,9 +659,15 @@ export const sendAuthenticatedUserMessage = async(message: Omit<Message, 'id' | 
  * @param message - Message object containing senderName, senderEmail, messageSubject, messageContent, and recipientUserId
  * @returns Message object if successful, throws error if failed
  */
-export const sendUnauthenticatedUserMessage = async(message: Omit<Message, 'id' | 'created_at' | 'updated_at'>): Promise<Message> => {
+export const sendUnauthenticatedUserMessage = async(message: {
+    senderName: string;
+    senderEmail: string;
+    messageSubject?: string;  // Optional subject, backend will provide default if not provided
+    messageContent: string;
+    recipientUserId: string;
+}): Promise<Message> => {
     try {
-        const response = await api.post('/message/unauthenticated', message);
+        const response = await api.post('/message/send/unauthenticated', message);
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to send message. Please try again.');
@@ -589,9 +678,10 @@ export const sendUnauthenticatedUserMessage = async(message: Omit<Message, 'id' 
  * Get Message Count by 
  * @returns Message count object if successful, throws error if failed
  */
-export const getMessageCount = async(): Promise<MessageCount> => {
+export const getMessageCounts = async(): Promise<MessageCount> => {
+    const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await api.get('/message/count');
+        const response = await authenticatedApi(token).get('/message/count');
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to get message count. Please try again.');
@@ -605,7 +695,7 @@ export const getMessageCount = async(): Promise<MessageCount> => {
 export const getReceivedMessagesList = async(): Promise<Message[]> => {
     const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await authenticatedApi(token).get('/message/received');
+        const response = await authenticatedApi(token).get('/message');
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to get received messages list. Please try again.');
@@ -613,33 +703,16 @@ export const getReceivedMessagesList = async(): Promise<Message[]> => {
 }
 
 /**
- * Get Received Message by message ID
- * @param messageId - ID of the message to get
- * @returns Message object if successful, throws error if failed
+ * Mark messages as read
+ * @param messageIds - Array of message ids to mark as read
  */
-export const getReceivedMessage = async(messageId: string): Promise<Message> => {
+export const markMessagesAsRead = async(messageIds: string[]): Promise<void> => {
     const token = localStorage.getItem('access_token') ?? '';
     try {
-        const response = await authenticatedApi(token).get(`/message/received/${messageId}`);
+        const response = await authenticatedApi(token).put('/message/read', { messageIds });
         return response.data;
     } catch(error: any) {
-        throw new Error('Failed to get received message. Please try again.');
-    }
-}
-
-/**
- * Update Message
- * @param messageId - ID of the message to update
- * @param message - Message object containing read
- * @returns Message object if successful, throws error if failed
- */
-export const updateMessage = async(messageId: string, message: Message): Promise<Message> => {
-    const token = localStorage.getItem('access_token') ?? '';
-    try {
-        const response = await authenticatedApi(token).put(`/message/${messageId}`, message);
-        return response.data;
-    } catch(error: any) {
-        throw new Error('Failed to update message. Please try again.');
+        throw new Error('Failed to mark messages as read. Please try again.');
     }
 }
 
@@ -655,5 +728,99 @@ export const deleteMessage = async(messageId: string): Promise<Message> => {
         return response.data;
     } catch(error: any) {
         throw new Error('Failed to delete message. Please try again.');
+    }
+}
+
+/**
+ * Delete Conversation
+ * @param conversationId - ID of the conversation to delete
+ * @returns Response object with deletion details if successful, throws error if failed
+ */
+export const deleteConversation = async(conversationId: string): Promise<{message: string; deleted_count: number}> => {
+    const token = localStorage.getItem('access_token') ?? '';
+    try {
+        const response = await authenticatedApi(token).delete(`/message/conversation/${conversationId}`);
+        return response.data;
+    } catch(error: any) {
+        throw new Error('Failed to delete conversation. Please try again.');
+    }
+}
+
+/**
+ * Get Portfolio (current authenticated user)
+ * @returns Portfolio object if successful, throws error if failed
+ */
+export const getPortfolio = async(): Promise<any> => {
+    const token = localStorage.getItem('access_token') ?? '';
+    try {
+        const response = await authenticatedApi(token).get('/portfolio/');
+        return response.data;
+    } catch(error: any) {
+        throw new Error('Failed to get portfolio. Please try again.');
+    }
+}
+
+/**
+ * Get Portfolio by User ID
+ * @param userId - ID of the user to get portfolio for
+ * @returns Portfolio object if successful, throws error if failed
+ */
+export const getPortfolioByUserId = async(userId: string): Promise<any> => {
+    try {
+        const response = await api.get(`/portfolio/user/${userId}`);
+        return response.data;
+    } catch(error: any) {
+        throw new Error('Failed to get portfolio. Please try again.');
+    }
+}
+
+/**
+ * Update Portfolio
+ * @param portfolio - Portfolio object containing portfolio information
+ * @returns Portfolio object if successful, throws error if failed
+ */
+export const updatePortfolio = async(portfolio: Partial<any>): Promise<any> => {
+    const token = localStorage.getItem('access_token') ?? '';
+    try {
+        const response = await authenticatedApi(token).put('/portfolio/', portfolio);
+        return response.data;
+    } catch(error: any) {
+        throw new Error('Failed to update portfolio. Please try again.');
+    }
+}
+
+/**
+ * Download Resume PDF for current authenticated user using LaTeX (backend generation)
+ * Uses LaTeX template for professional formatting
+ * @returns Promise that resolves when PDF is downloaded
+ */
+export const downloadResume = async (): Promise<void> => {
+    const token = localStorage.getItem('access_token') ?? '';
+    try {
+        const response = await authenticatedApi(token).get('/resume/latex', {
+            responseType: 'blob',
+        });
+        
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const contentDisposition = response.headers['content-disposition'];
+        let filename = 'Resume.pdf';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+        throw new Error(error.message || 'Failed to download resume. Please try again.');
     }
 }

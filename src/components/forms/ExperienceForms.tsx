@@ -12,11 +12,6 @@ interface ExperienceAddEditFormProps {
     setShowForm: (show: boolean) => void;
 }
 
-interface DeleteConfirmationModalProps {
-    experience: Experience | null;
-    setShowDeleteConfirmationModal?: (show: boolean) => void;
-}
-
 const ExperienceAddEditForm: React.FC<ExperienceAddEditFormProps> = ({ isAdd, selectedExperience, setShowForm }) => {
     const [experience, setExperience] = useState({
         title: selectedExperience?.title ?? '',
@@ -98,147 +93,177 @@ const ExperienceAddEditForm: React.FC<ExperienceAddEditFormProps> = ({ isAdd, se
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-purple-600 rounded-full mb-4">
-                    <Briefcase className="w-8 h-8 text-white" />
+        <div className="w-full max-w-6xl mx-auto">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-orange-500 via-purple-500 to-pink-600 rounded-xl mb-3 shadow-md shadow-purple-500/20">
+                    <Briefcase className="w-7 h-7 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">
                     {isAdd ? 'Add Experience' : 'Edit Experience'}
                 </h2>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
-                {/* Job Title */}
-                <div className="space-y-2">
-                    <label 
-                        className="flex items-center gap-2 text-sm font-semibold text-gray-700"
-                    >
-                        <Briefcase className="w-4 h-4 text-blue-600" />
-                        Job Title
-                    </label>
-                    <input
-                        type="text"
-                        name="title"
-                        placeholder="e.g., Senior Software Engineer"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={experience.title}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+            <form className="space-y-5" onSubmit={handleSubmit}>
+                {/* Basic Information Section */}
+                <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                    <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                            <Briefcase className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        Basic Information
+                    </h3>
+                    
+                    <div className="space-y-4">
+                        {/* Job Title */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Briefcase className="w-4 h-4 text-blue-600" />
+                                Job Title
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="title"
+                                placeholder="e.g., Senior Software Engineer"
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400"
+                                value={experience.title}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                {/* Company */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <Building2 className="w-4 h-4 text-green-600" />
-                        Company
-                    </label>
-                    <input
-                        type="text"
-                        name="company"
-                        placeholder="e.g., Google, Microsoft, Apple"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={experience.company}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                        {/* Company */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Building2 className="w-4 h-4 text-green-600" />
+                                Company
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="company"
+                                placeholder="e.g., Google, Microsoft, Apple"
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400"
+                                value={experience.company}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                {/* Description */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <FileText className="w-4 h-4 text-yellow-600" />
-                        Description
-                    </label>
-                    <textarea
-                        name="description"
-                        placeholder="e.g., I worked on the project..."
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={experience.description}
-                        onChange={handleChange}
-                        required
-                        rows={4}
-                    />
-                </div>
+                        {/* Description */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <FileText className="w-4 h-4 text-yellow-600" />
+                                Description
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                name="description"
+                                placeholder="Describe your role, responsibilities, and achievements..."
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400 resize-y min-h-[100px]"
+                                value={experience.description}
+                                onChange={handleChange}
+                                required
+                                rows={4}
+                            />
+                        </div>
 
-                {/* Technologies */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <Code className="w-4 h-4 text-red-600" />
-                        Technologies
-                    </label>
-                    <input
-                        type="text"
-                        name="technologies"
-                        placeholder="e.g., React, Node.js, Python, AWS (comma separated)"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={experience.technologies}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                {/* Date Range */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <Calendar className="w-4 h-4 text-indigo-600" />
-                            Start Date
-                        </label>
-                        <MonthYearPicker
-                            placeholder="Start Date"
-                            label="Start Date"
-                            value={experience.start_date}
-                            onChange={(value) => setExperience({ ...experience, start_date: value })}
-                            startDate={experience.end_date}
-                        />
+                        {/* Technologies */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Code className="w-4 h-4 text-red-600" />
+                                Technologies
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="technologies"
+                                placeholder="e.g., React, Node.js, Python, AWS (comma separated)"
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400"
+                                value={experience.technologies}
+                                onChange={handleChange}
+                                required
+                            />
+                            <p className="text-xs text-gray-500">Separate multiple technologies with commas</p>
+                        </div>
                     </div>
+                </div>
 
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <Calendar className="w-4 h-4 text-indigo-600" />
-                            End Date
-                            <span className="text-xs text-gray-500 font-normal">(Optional)</span>
-                        </label>
-                        <MonthYearPicker
-                            placeholder="End Date"
-                            label="End Date"
-                            value={experience.end_date}
-                            onChange={(value) => setExperience({ ...experience, end_date: value })}
-                        />
+                {/* Timeline Section */}
+                <div className="bg-gradient-to-br from-indigo-50/50 to-white rounded-xl p-4 border border-indigo-100 shadow-sm">
+                    <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                            <Calendar className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        Employment Timeline
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Calendar className="w-4 h-4 text-indigo-600" />
+                                Start Date
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <MonthYearPicker
+                                placeholder="Start Date"
+                                label="Start Date"
+                                value={experience.start_date}
+                                onChange={(value) => setExperience({ ...experience, start_date: value })}
+                                startDate={experience.end_date}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Calendar className="w-4 h-4 text-indigo-600" />
+                                End Date
+                                <span className="text-xs font-normal text-gray-500 ml-1">(Optional)</span>
+                            </label>
+                            <MonthYearPicker
+                                placeholder="End Date"
+                                label="End Date"
+                                value={experience.end_date}
+                                onChange={(value) => setExperience({ ...experience, end_date: value })}
+                                startDate={experience.start_date}
+                                disabled={!experience.start_date}
+                            />
+                        </div>
                     </div>
                 </div>
                 
                 {/* Error Message */}
                 {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="p-3 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg shadow-sm">
                         <div className="flex items-center gap-2 text-red-700">
-                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <span className="text-sm font-medium">{error}</span>
+                            <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+                            <span className="text-sm font-semibold">{error}</span>
                         </div>
                     </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-3 pt-2">
                     <button
                         type="submit"
-                        disabled={!isSubmitActive}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl"
+                        disabled={!isSubmitActive || loading}
+                        className="flex-1 bg-gradient-to-r from-blue-500 via-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-bold text-sm hover:from-blue-600 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none shadow-md hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2"
                     >
                         {loading ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                {isAdd ? 'Adding Experience...' : 'Updating Experience...'}
-                            </div>
-                            ) : (
-                                isAdd ? 'Add Experience' : 'Update Experience'
-                            )}
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>{isAdd ? 'Adding Experience...' : 'Updating Experience...'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <Briefcase className="w-4 h-4" />
+                                <span>{isAdd ? 'Add Experience' : 'Update Experience'}</span>
+                            </>
+                        )}
                     </button>
                     <button
                         type="button"
-                        className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 border border-gray-200"
+                        className="flex-1 bg-white text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 border-2 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                         onClick={() => setShowForm(false)}
                         disabled={loading}
                     >
@@ -250,89 +275,4 @@ const ExperienceAddEditForm: React.FC<ExperienceAddEditFormProps> = ({ isAdd, se
     );
 }
 
-const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ experience, setShowDeleteConfirmationModal }) => {
-    const [loading, setLoading] = useState(false);
-    const { setIsExperienceLoading } = usePortfolio();
-    const [error, setError] = useState('');
-
-    const handleDeleteExperience = async () => {
-        try {
-            setLoading(true);
-            const deletedExperience = await deleteExperience(experience?._id ?? '');
-            if (deletedExperience.status_code === 400) {
-                throw new Error(deletedExperience.message ?? 'Failed to delete experience');
-            }
-            setShowDeleteConfirmationModal?.(false);
-            setIsExperienceLoading(true);
-        }
-        catch (error: any) {
-            setError(error.message ?? '');
-        }
-        finally {
-            setLoading(false);
-        }
-    }
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md pointer-events-auto p-4">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl relative w-full max-w-md border border-white/20">
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-red-100 rounded-full">
-                            <Trash2 className="w-8 h-8 text-red-500" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900">Delete Experience</h3>
-                    </div>
-                    <button
-                        onClick={() => setShowDeleteConfirmationModal?.(false)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                        aria-label="Close"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <div className="p-6">
-                    <p className="text-gray-700">
-                        Are you sure you want to delete this experience?
-                        <span className="font-semibold text-gray-900"> "{experience?.title}"</span>
-                        ?
-                    </p>
-                    <p className="text-sm text-gray-500 mb-6">
-                        This action cannot be undone.
-                    </p>
-
-                    {/* Error Message */}
-                    {error && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <div className="flex items-center gap-2 text-red-700">
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span className="text-sm font-medium">{error}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowDeleteConfirmationModal?.(false)}
-                            className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50"
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            onClick={handleDeleteExperience}
-                            className="flex-1 px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                            disabled={loading}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-export { ExperienceAddEditForm, DeleteConfirmationModal };
+export { ExperienceAddEditForm };

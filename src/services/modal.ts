@@ -80,6 +80,12 @@ export interface Portfolio {
     portfolio_education?: string[];
     portfolio_certifications?: string[];
     portfolio_awards?: string[];
+    github_url?: string;
+    twitter_url?: string;
+    instagram_url?: string;
+    linkedin_url?: string;
+    leetcode_url?: string;
+    website_url?: string;
     title?: string;
 
     status_code?: number;
@@ -87,15 +93,19 @@ export interface Portfolio {
 }
 
 export interface Message {
-    id: string;
+    _id?: string | null;
+    conversationId: string;  // Required: Conversation ID to group related messages
     senderName: string;
     senderEmail: string;
     messageSubject: string;
     messageContent: string;
-    created_at: string;
-    read: boolean;
-    senderUserId?: string;
+    created_at?: string;
+    updated_at?: string;
+    isRead?: boolean;
+    senderUserId?: string | null;
     recipientUserId?: string;
+    recipientEmail?: string;
+    recipientName?: string;
 
     status_code?: number;
     message?: string;
@@ -116,22 +126,45 @@ export interface Award {
 }
 
 export interface Message {
-    id: string;
+    _id?: string | null;
+    conversationId: string;  // Required: Conversation ID to group related messages
     senderName: string;
     senderEmail: string;
     messageSubject: string;
     messageContent: string;
-    created_at: string;
-    read: boolean;
-    senderUserId?: string;
+    created_at?: string;
+    isRead?: boolean;
+    senderUserId?: string | null;
     recipientUserId?: string;
 
     status_code?: number;
     message?: string;
 }
 
+export interface GroupedMessageModel {
+    conversationKey: string;
+    sender: string;
+    senderEmail: string;
+    recipientName: string;
+    recipientEmail: string;
+    messages: Message[];
+    unreadCount: number;
+    latestMessage: Message;
+}
+
 export interface MessageCount {
     read: number;
     unread: number;
     total: number;
+}
+
+export interface GroupedMessageModel {
+    conversationKey: string;
+    sender: string;
+    senderEmail: string;
+    recipientName: string;
+    recipientEmail: string;
+    messages: Message[];
+    unreadCount: number;
+    latestMessage: Message;
 }

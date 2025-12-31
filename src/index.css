@@ -103,3 +103,77 @@ body.hide-navigation .navbar {
 body.hide-navigation footer {
   display: none !important;
 }
+
+/* Custom Scrollbar Styles - Enhanced with smooth scrolling */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox - thin scrollbar */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth; /* Smooth scrolling */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px; /* Slightly wider for better visibility */
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05); /* Subtle track */
+  border-radius: 10px;
+  margin: 4px 0; /* Add some margin */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: transparent; /* Hidden by default */
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth easing */
+  border: 1px solid transparent; /* For better definition */
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3); /* Visible on hover */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: scaleX(1.1); /* Slight scale on hover */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Firefox scrollbar - enhanced */
+.scrollbar-thin {
+  scrollbar-color: transparent transparent;
+}
+
+.scrollbar-thin:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+/* Smooth scroll behavior for all scrollable elements */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for different states */
+.scrollbar-thin.scrollbar-auto {
+  scrollbar-width: auto;
+}
+
+.scrollbar-thin.scrollbar-auto::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Fade-in effect for scrollbars */
+.scrollbar-fade {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.scrollbar-fade:hover {
+  opacity: 1;
+}

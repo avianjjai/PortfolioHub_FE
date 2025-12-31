@@ -1,6 +1,7 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { Award, Certification, Education, Experience, Message, Project, Skill } from "../services/modal";
-import { addSkill, getAwardsByUserId, getCertificationsByUserId, getEducationsByUserId, getExperiencesByUserId, getProjectsByUserId, getReceivedMessagesList, getSkillsByUserId } from "../services/api";
+import { createContext, ReactNode, useContext, useEffect, useState, Dispatch, SetStateAction } from "react";
+import { useLocation } from "react-router-dom";
+import { Award, Certification, Education, Experience, Message, MessageCount, Project, Skill } from "../services/modal";
+import { addSkill, getAwardsByUserId, getCertificationsByUserId, getEducationsByUserId, getExperiencesByUserId, getMessageCounts, getProjectsByUserId, getReceivedMessagesList, getSkillsByUserId } from "../services/api";
 import { useAuth } from "./AuthContext";
 
 interface PortfolioContextType {
@@ -41,10 +42,16 @@ interface PortfolioContextType {
     setIsAwardLoading: (isAwardLoading: boolean) => void;
 
     messages: Message[];
-    setMessages: (messages: Message[]) => void;
-    getMessages: () => Promise<void>;
+    setMessages: Dispatch<SetStateAction<Message[]>>;
+    getMessages: () => Promise<Message[]>;
     isMessageLoading: boolean;
-    setIsMessageLoading: (isMessageLoading: boolean) => void;
+    setIsMessageLoading: Dispatch<SetStateAction<boolean>>;
+
+    messageCount: MessageCount;
+    setMessageCount: Dispatch<SetStateAction<MessageCount>>;
+    getMessageCount: () => Promise<MessageCount>;
+    isMessageCountLoading: boolean;
+    setIsMessageCountLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -91,55 +98,95 @@ export const PortfolioProvider = ({ children }: { children: ReactNode }) => {
     const [isAwardLoading, setIsAwardLoading] = useState(true);
     const getAwards = async (currentUserId: string) => {
         const awards = await getAwardsByUserId(currentUserId);
-        setAwards(awards);
+            setAwards(awards);
     }
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [isMessageLoading, setIsMessageLoading] = useState(true);
     const getMessages = async () => {
-        const messages = await getReceivedMessagesList();
-        setMessages(messages);
+        const fetchedMessages = await getReceivedMessagesList();
+        setMessages(fetchedMessages);
+        return fetchedMessages;
     }
 
+    const [messageCount, setMessageCount] = useState<MessageCount>({ read: 0, unread: 0, total: 0 });
+    const [isMessageCountLoading, setIsMessageCountLoading] = useState(true);
+    const getMessageCount = async () => {
+        const fetchedMessageCount = await getMessageCounts();
+        setMessageCount(fetchedMessageCount);
+        return fetchedMessageCount;
+    }
+
+    // Clear all portfolio data when user logs out
     useEffect(() => {
-        if (isAuthenticated && currentUser) {
+        if (!isAuthenticated || !currentUser) {
+            setSkills([]);
+            setProjects([]);
+            setExperiences([]);
+            setEducations([]);
+            setCertifications([]);
+            setAwards([]);
+            setMessages([]);
+            setMessageCount({ read: 0, unread: 0, total: 0 });
+            setIsSkillLoading(true);
+            setIsProjectLoading(true);
+            setIsExperienceLoading(true);
+            setIsEducationLoading(true);
+            setIsCertificationLoading(true);
+            setIsAwardLoading(true);
+            setIsMessageLoading(true);
+            setIsMessageCountLoading(true);
+        }
+    }, [isAuthenticated, currentUser]);
+
+    useEffect(() => {
+        const currentUserId = currentUser?.id;
+        if (currentUserId) {
+            // const currentUserId = userId || currentUser.id;
             if (isSkillLoading) {
-                getSkills(currentUser.id);
+                getSkills(currentUserId);
                 setIsSkillLoading(false);
             }
             if (isProjectLoading) {
-                getProjects(currentUser.id);
+                getProjects(currentUserId);
                 setIsProjectLoading(false);
             }
             if (isExperienceLoading) {
-                getExperiences(currentUser.id);
+                getExperiences(currentUserId);
                 setIsExperienceLoading(false);
             }
             if (isEducationLoading) {
-                getEducations(currentUser.id);
+                getEducations(currentUserId);
                 setIsEducationLoading(false);
             }
             if (isCertificationLoading) {
-                getCertifications(currentUser.id);
+                getCertifications(currentUserId);
                 setIsCertificationLoading(false);
             }
             if (isAwardLoading) {
-                getAwards(currentUser.id);
+                getAwards(currentUserId);
                 setIsAwardLoading(false);
             }
-            if (isMessageLoading) {
+            if (isMessageLoading && isAuthenticated && currentUser) {
                 getMessages();
                 setIsMessageLoading(false);
             }
+            if (isMessageCountLoading && isAuthenticated && currentUser) {
+                getMessageCount();
+                setIsMessageCountLoading(false);
+            }
         }
     }, [
-        skills, isSkillLoading, getSkills, setIsSkillLoading,
-        projects, isProjectLoading, getProjects, setIsProjectLoading,
-        experiences, isExperienceLoading, getExperiences, setIsExperienceLoading,   
-        educations, isEducationLoading, getEducations, setIsEducationLoading,
-        certifications, isCertificationLoading, getCertifications, setIsCertificationLoading,
-        awards, isAwardLoading, getAwards, setIsAwardLoading,
-        messages, isMessageLoading, getMessages, setIsMessageLoading,
+        isAuthenticated,
+        currentUser,
+        isSkillLoading,
+        isProjectLoading,
+        isExperienceLoading,
+        isEducationLoading,
+        isCertificationLoading,
+        isAwardLoading,
+        isMessageLoading,
+        isMessageCountLoading,
     ]);
 
     return (
@@ -150,7 +197,8 @@ export const PortfolioProvider = ({ children }: { children: ReactNode }) => {
             educations, isEducationLoading, getEducations, setEducations, setIsEducationLoading,
             certifications, isCertificationLoading, getCertifications, setCertifications, setIsCertificationLoading,
             awards, isAwardLoading, getAwards, setAwards, setIsAwardLoading,
-            messages, isMessageLoading, getMessages, setMessages, setIsMessageLoading,
+            messages, isMessageLoading, getMessages, setMessages, setIsMessageLoading, 
+            messageCount, isMessageCountLoading, getMessageCount, setMessageCount, setIsMessageCountLoading, 
         }}>
             {children}
         </PortfolioContext.Provider>

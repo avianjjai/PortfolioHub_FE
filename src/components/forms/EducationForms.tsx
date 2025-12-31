@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Education } from "../../services/modal";
 import { converEpochToDate, convertDateToEpoch } from "../../utils/utility";
 import { usePortfolio } from "../../context/PortfolioContext";
-import { Calendar, GraduationCap, Trash2, X } from "lucide-react";
+import { Calendar, GraduationCap, FileText, Trash2, X } from "lucide-react";
 import MonthYearPicker from "./MonthYearPicker";
 import { addEducation, deleteEducation, deleteProject, updateEducation } from "../../services/api";
 
@@ -10,11 +10,6 @@ interface EducationAddEditFormProps {
     isAdd: boolean;
     selectedEducation?: Education | null;
     setShowForm: (show: boolean) => void;
-}
-
-interface DeleteConfirmationModalProps {
-    education: Education | null;
-    setShowDeleteConfirmationModal?: (show: boolean) => void;
 }
 
 const EducationAddEditForm: React.FC<EducationAddEditFormProps> = ({ isAdd, selectedEducation, setShowForm }) => {
@@ -92,131 +87,159 @@ const EducationAddEditForm: React.FC<EducationAddEditFormProps> = ({ isAdd, sele
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-purple-600 rounded-full mb-4">
-                    <GraduationCap className="w-8 h-8 text-white" />
+        <div className="w-full max-w-6xl mx-auto">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-orange-500 via-purple-500 to-pink-600 rounded-xl mb-3 shadow-md shadow-purple-500/20">
+                    <GraduationCap className="w-7 h-7 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1 bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">
                     {isAdd ? 'Add Education' : 'Edit Education'}
                 </h2>
             </div>
 
             <form 
-                className="space-y-6"
+                className="space-y-5"
                 onSubmit={handleSubmit}
             >
-                {/* Institution */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <GraduationCap className="w-4 h-4 text-orange-600" />
-                        Institution
-                    </label>
-                    <input
-                        type="text"
-                        name="institution"
-                        placeholder="e.g., University of California, Los Angeles"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={education.institution}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                {/* Basic Information Section */}
+                <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                    <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="p-1.5 bg-gradient-to-br from-orange-500 to-purple-600 rounded-lg">
+                            <GraduationCap className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        Academic Information
+                    </h3>
+                    
+                    <div className="space-y-4">
+                        {/* Institution */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <GraduationCap className="w-4 h-4 text-orange-600" />
+                                Institution
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="institution"
+                                placeholder="e.g., University of California, Los Angeles"
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400"
+                                value={education.institution}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                {/* Degree */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <GraduationCap className="w-4 h-4 text-orange-600" />
-                        Degree
-                    </label>
-                    <input
-                        type="text"
-                        name="degree"
-                        placeholder="e.g., Bachelor of Science in Computer Science"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400"
-                        value={education.degree}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                        {/* Degree */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <GraduationCap className="w-4 h-4 text-purple-600" />
+                                Degree
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="degree"
+                                placeholder="e.g., Bachelor of Science in Computer Science"
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400"
+                                value={education.degree}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                {/* Description */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <Calendar className="w-4 h-4 text-orange-600" />
-                        Description
-                    </label>
-                    <textarea
-                        value={education.description}
-                        onChange={(e) => setEducation({ ...education, description: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 bg-white/50 backdrop-blur-sm placeholder-gray-400 resize-none"
-                        rows={4}
-                        placeholder="Describe your academic achievements, specializations, and notable projects..."
-                        required
-                    />
-                </div>
-
-                {/* Date Range */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <Calendar className="w-4 h-4 text-orange-600" />
-                            Start Date
-                        </label>
-                        <MonthYearPicker
-                            label="Start Date"
-                            value={education.start_date}
-                            onChange={(value) => setEducation({ ...education, start_date: value })}
-                            placeholder="Select start date"
-                            startDate={education.end_date}
-                        />
+                        {/* Description */}
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <FileText className="w-4 h-4 text-blue-600" />
+                                Description
+                            </label>
+                            <textarea
+                                value={education.description}
+                                onChange={(e) => setEducation({ ...education, description: e.target.value })}
+                                className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 placeholder-gray-400 resize-y min-h-[100px]"
+                                rows={4}
+                                placeholder="Describe your academic achievements, specializations, and notable projects..."
+                            />
+                        </div>
                     </div>
+                </div>
 
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <Calendar className="w-4 h-4 text-orange-600" />
-                            End Date (Optional)
-                        </label>
-                        <MonthYearPicker
-                            label="End Date (Optional)"
-                            value={education.end_date}
-                            onChange={(value) => setEducation({ ...education, end_date: value })}
-                            placeholder="Select end date"
-                            startDate={education.start_date}
-                        />
+                {/* Timeline Section */}
+                <div className="bg-gradient-to-br from-indigo-50/50 to-white rounded-xl p-4 border border-indigo-100 shadow-sm">
+                    <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                            <Calendar className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        Academic Timeline
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Calendar className="w-4 h-4 text-indigo-600" />
+                                Start Date
+                                <span className="text-red-500">*</span>
+                            </label>
+                            <MonthYearPicker
+                                label="Start Date"
+                                value={education.start_date}
+                                onChange={(value) => setEducation({ ...education, start_date: value })}
+                                placeholder="Select start date"
+                                startDate={education.end_date}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Calendar className="w-4 h-4 text-indigo-600" />
+                                End Date
+                                <span className="text-xs font-normal text-gray-500 ml-1">(Optional)</span>
+                            </label>
+                            <MonthYearPicker
+                                label="End Date (Optional)"
+                                value={education.end_date}
+                                onChange={(value) => setEducation({ ...education, end_date: value })}
+                                placeholder="Select end date"
+                                startDate={education.start_date}
+                                disabled={!education.start_date}
+                            />
+                        </div>
                     </div>
                 </div>  
 
                 {/* Error Message */}
                 {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="p-3 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg shadow-sm">
                         <div className="flex items-center gap-2 text-red-700">
-                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <span className="text-sm font-medium">{error}</span>
+                            <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+                            <span className="text-sm font-semibold">{error}</span>
                         </div>
                     </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 pt-6">
+                <div className="flex gap-3 pt-2">
                     <button
                         type="submit"
-                        disabled={!isSubmitActive}
-                        className="flex-1 bg-gradient-to-r from-orange-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-orange-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl"
+                        disabled={!isSubmitActive || loading}
+                        className="flex-1 bg-gradient-to-r from-orange-500 via-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-bold text-sm hover:from-orange-600 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none shadow-md hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2"
                     >
                         {loading ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                {isAdd ? 'Adding Education...' : 'Updating Education...'}
-                            </div>
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>{isAdd ? 'Adding Education...' : 'Updating Education...'}</span>
+                            </>
                         ) : (
-                            isAdd ? 'Add Education' : 'Update Education'
+                            <>
+                                <GraduationCap className="w-4 h-4" />
+                                <span>{isAdd ? 'Add Education' : 'Update Education'}</span>
+                            </>
                         )}
                     </button>
                     <button
                         type="button"
                         onClick={() => setShowForm(false)}
-                        className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 border border-gray-200"
+                        className="flex-1 bg-white text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 border-2 border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                     >
                         Cancel
                     </button>
@@ -226,83 +249,4 @@ const EducationAddEditForm: React.FC<EducationAddEditFormProps> = ({ isAdd, sele
     );
 };
 
-const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ education, setShowDeleteConfirmationModal }) => {
-    const [loading, setLoading] = useState(false);
-    const { setIsEducationLoading } = usePortfolio();
-    const [error, setError] = useState('');
-
-    const handleDeleteEducation = async () => {
-        try {
-            setLoading(true);
-            const deletedEducation = await deleteEducation(education?._id ?? '');
-            if (deletedEducation.status_code === 400) {
-                throw new Error(deletedEducation.message ?? 'Failed to delete education');
-            }
-            setShowDeleteConfirmationModal?.(false);
-            setIsEducationLoading(true);
-        } catch (error: any) {
-            setError(error.message ?? '');
-        } finally {
-            setLoading(false);
-        }
-    }
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md pointer-events-auto p-4">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl relative w-full max-w-md border border-white/20">
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-red-100 rounded-full">
-                            <Trash2 size={16} />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900">Delete Education</h3>
-                    </div>
-                    <button
-                        onClick={() => setShowDeleteConfirmationModal?.(false)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                        aria-label="Close"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <div className="p-6">
-                    <p className="text-gray-700 mb-4">
-                        Are you sure you want to delete this education?
-                        <span className="font-semibold text-gray-900"> "{education?.degree}"</span>
-                        ?
-                    </p>
-                    <p className="text-sm text-gray-500 mb-6">
-                        This action cannot be undone.
-                    </p>
-
-                    {/* Actions */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowDeleteConfirmationModal?.(false)}
-                            className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50"
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleDeleteEducation}
-                            className="flex-1 px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Deleting Education...
-                                </div>
-                            ) : (
-                                'Delete Education'
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};  
-
-export { EducationAddEditForm, DeleteConfirmationModal };
+export { EducationAddEditForm };

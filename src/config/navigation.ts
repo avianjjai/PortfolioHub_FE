@@ -4,8 +4,9 @@ export interface NavItem {
     isRoute: boolean;
 }
 
-export const getNavigationItems = (isMe: boolean): NavItem[] => {
+export const getNavigationItems = (isMe: boolean, isValidUser: boolean): NavItem[] => {
     const messageItem = isMe ? [{ path: '#contact-management', label: 'Messages', isRoute: false }] : [];
+    const contactItem = !isMe && isValidUser ? [{ path: '#contact', label: 'Contact', isRoute: false }] : [];
     const items: NavItem[] = [
         { path: '/', label: 'Home', isRoute: true },
         { path: '#about', label: 'About', isRoute: false },
@@ -15,7 +16,7 @@ export const getNavigationItems = (isMe: boolean): NavItem[] => {
         { path: '#education', label: 'Education', isRoute: false },
         { path: '#certifications', label: 'Certifications', isRoute: false },
         { path: '#awards', label: 'Awards', isRoute: false },
-        { path: '#contact', label: 'Contact', isRoute: false },
+        ...contactItem,
         ...messageItem,
     ];
 

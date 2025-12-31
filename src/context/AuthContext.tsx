@@ -1,5 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import UserDataService from "../services/userDataService";
+import { useLocation } from "react-router-dom";
+import { getMe, getUserByUserId, incrementVisitorCount, logout as logoutApi } from "../services/api";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -13,7 +15,10 @@ interface AuthContextType {
     setIsValidUser: (value: boolean) => void;
     currentUser: any;
     setCurrentUser: (user: any) => void;
-    validateToken: () => Promise<void>;
+    logout: () => Promise<void>;
+
+    isCurrentUserLoading: boolean;
+    setIsCurrentUserLoading: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,43 +27,94 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isMe, setIsMe] = useState(false);
     const [isValidUser, setIsValidUser] = useState(false);
-    const [loggedInUser, setLoggedInUser] = useState<any>(null);
-    const [currentUser, setCurrentUser] = useState<any>(null);  
     const [isLoading, setIsLoading] = useState(true);
 
-    const validateToken = async () => {
-        console.log('validateToken');
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            setIsAuthenticated(false);
-            return;
-        }
+    const [isLoggedInUserLoading, setIsLoggedInUserLoading] = useState(true);
+    const [loggedInUser, setLoggedInUser] = useState<any>(null);
 
+    const [isCurrentUserLoading, setIsCurrentUserLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);  
+
+    const location = useLocation();
+    const match = location.pathname.match(/^\/user\/([^/]+)/);
+    const currentUserId = match ? match[1] : undefined;
+
+    const getLoggedInUser = async () => {
+        const user = await getMe();
+        setLoggedInUser(user);
+    }
+
+    const getCurrentUser = async (currentUserId: string | undefined) => {
+        if (!currentUserId) {
+            currentUserId = loggedInUser?.id;
+        }
         try {
-            // Validate Token
-            const user = await UserDataService.getInstance().getUserData();
-            setLoggedInUser(user);
+            const user = await getUserByUserId(currentUserId ?? '');
             setCurrentUser(user);
-            setIsAuthenticated(true);
-            setIsMe(true);
-            setIsValidUser(true);
+            
+            // Increment visitor count if viewing someone else's portfolio (or if not logged in)
+            // Only increment once per session to avoid spam
+            const isViewingOwnProfile = loggedInUser && loggedInUser.id === currentUserId;
+            if (currentUserId && !isViewingOwnProfile) {
+                const visitKey = `visited_${currentUserId}`;
+                const hasVisited = sessionStorage.getItem(visitKey);
+                
+                if (!hasVisited) {
+                    try {
+                        const result = await incrementVisitorCount(currentUserId);
+                        sessionStorage.setItem(visitKey, 'true');
+                        // Refresh user data to get accurate count from server
+                        if (result && result.visitor_count !== undefined) {
+                            setCurrentUser({ ...user, visitor_count: result.visitor_count });
+                        } else {
+                            // Fallback: increment locally if server response doesn't have count
+                            setCurrentUser({ ...user, visitor_count: (user.visitor_count || 0) + 1 });
+                        }
+                    } catch (error) {
+                        // Silently fail - visitor count is not critical
+                        console.error('Failed to increment visitor count:', error);
+                    }
+                }
+            }
         } catch (error) {
-            console.log('error', error);
-            localStorage.removeItem('access_token');
-            setLoggedInUser(null);
-            setIsAuthenticated(false);
-            setIsMe(false);
-        } finally {
-            setIsLoading(false);
+            setCurrentUser(null);
         }
     }
 
     useEffect(() => {
-        validateToken();
-    }, []);
+        const initialize = async () => {
+            if (isLoggedInUserLoading) {
+                await getLoggedInUser();
+                setIsLoggedInUserLoading(false);
+            }
+
+            if (isCurrentUserLoading && !isLoggedInUserLoading) {
+                await getCurrentUser(currentUserId);
+                setIsCurrentUserLoading(false);
+            }
+        };
+        initialize();
+    }, [isCurrentUserLoading, isLoggedInUserLoading, currentUserId]);
+
+    useEffect(() => {
+        setIsAuthenticated(!!(loggedInUser && loggedInUser?.id));
+        setIsMe(!!(loggedInUser && currentUser && loggedInUser?.id === currentUser?.id));
+        setIsValidUser(!!(currentUser && currentUser?.id));
+    }, [loggedInUser, currentUser, currentUserId]);
+
+    const logout = async () => {
+        // Call logout API to blacklist the token
+        await logoutApi();
+        // Clear local state
+        setIsAuthenticated(false);
+        setIsMe(false);
+        setIsValidUser(false);
+        setLoggedInUser(null);
+        setCurrentUser(null);
+    };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, isMe, setIsMe, isValidUser, setIsValidUser, loggedInUser, setLoggedInUser, currentUser, setCurrentUser, isLoading, validateToken }}>
+        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, isMe, setIsMe, isValidUser, setIsValidUser, loggedInUser, setLoggedInUser, currentUser, setCurrentUser, isLoading, logout, isCurrentUserLoading, setIsCurrentUserLoading }}>
             {children}
         </AuthContext.Provider>
     );

@@ -8,7 +8,7 @@ const LoginForm: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { setIsAuthenticated, isAuthenticated, setIsMe, setIsValidUser, setCurrentUser, validateToken } = useAuth();
+    const { setIsAuthenticated, isAuthenticated, setIsMe, setIsValidUser, setCurrentUser } = useAuth();
     
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,11 +19,10 @@ const LoginForm: React.FC = () => {
             // Save token to localStorage or context if needed
             if (response.access_token) {
                 localStorage.setItem('access_token', response.access_token);
-                await validateToken();
                 window.location.href = '/';
             }
         } catch (error) {
-            console.error('Login error:', error);
+            // Login error handled
         } finally {
             setLoading(false);
         }

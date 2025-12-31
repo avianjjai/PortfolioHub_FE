@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ContactMeForm } from "../forms/ContactMeForm";
 
 const ContactSection = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isMe, loggedInUser } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -14,13 +14,13 @@ const ContactSection = () => {
     return (
         <section id="contact" className="gradient-purple-pink py-20">
             <div className="container mx-auto px-4">
-                <h2 className="text-4xl font-bold text-white mb-12 text-center">Contact Me</h2>
+                <h2 
+                    className="text-4xl font-bold text-white mb-6 text-center"
+                >
+                    { isMe ? 'Contact To': 'Contact Me'}
+                </h2>
                 <div className="w-full grid gap-12">
-                    <div>
-                        <>
-                            <ContactMeForm />
-                        </>
-                    </div>
+                    <ContactMeForm />
                 </div>
             </div>
         </section>

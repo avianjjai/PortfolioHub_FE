@@ -1,23 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { getNavigationItems } from '../config/navigation';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar: React.FC = () => {
-    const { isAuthenticated, setIsAuthenticated, isMe } = useAuth();
-    const navItems = getNavigationItems(isMe);
+    const { isAuthenticated, isMe, isValidUser, logout } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const navItems = getNavigationItems(isMe, isValidUser);
 
-    const handleNavClick = (sectionId: string) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+    const handleNavClick = (item: { path: string; isRoute: boolean; label: string }) => {
+        if (item.isRoute) {
+            // Handle route navigation (e.g., Home -> /)
+            if (item.path === '/' && location.pathname === '/') {
+                // Already on home page, scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                navigate(item.path);
+            }
+        } else {
+            // Handle hash/section navigation (e.g., #about, #skills)
+            const sectionId = item.path.replace('#', '');
+            
+            if (location.pathname === '/') {
+                // Already on home page, scroll to section
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                // Not on home page, navigate to home with scroll state
+                navigate('/', { state: { scrollTo: sectionId } });
+            }
         }
     };
 
-    const logout = () => {
-        console.log('Logout');
-        setIsAuthenticated(false);
-        localStorage.removeItem('access_token');
+    const handleLogout = async () => {
+        await logout();
+        navigate('/');
     }
     
     return (
@@ -36,38 +56,38 @@ const Navbar: React.FC = () => {
                             {navItems.map((item) => (
                                 <button
                                     key={item.path}
-                                    onClick={() => handleNavClick(item.path)}
+                                    onClick={() => handleNavClick(item)}
                                     className="text-white hover:text-gray-200 transition-colors font-medium text-sm lg:text-base whitespace-nowrap"
                                 >
                                     {item.label}
                                 </button>
                             ))}
+
+                            {!isAuthenticated ? (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        className="ml-2 lg:ml-4 px-3 lg:px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow text-sm lg:text-base"
+                                    >
+                                        Login
+                                    </Link>
+
+                                    <Link
+                                        to="/register"
+                                        className="ml-2 px-3 lg:px-5 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors shadow text-sm lg:text-base"
+                                    >
+                                        Register
+                                    </Link>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={handleLogout}
+                                    className="ml-2 lg:ml-4 px-3 lg:px-5 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow text-sm lg:text-base"
+                                >
+                                    Logout
+                                </button>
+                            )}
                         </div>
-
-                        {!isAuthenticated ? (
-                            <>
-                                <Link
-                                    to="/login"
-                                    className="ml-2 lg:ml-4 px-3 lg:px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow text-sm lg:text-base"
-                                >
-                                    Login
-                                </Link>
-
-                                <Link
-                                    to="/register"
-                                    className="ml-2 px-3 lg:px-5 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors shadow text-sm lg:text-base"
-                                >
-                                    Register
-                                </Link>
-                            </>
-                        ) : (
-                            <button
-                                onClick={logout}
-                                className="ml-2 lg:ml-4 px-3 lg:px-5 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow text-sm lg:text-base"
-                            >
-                                Logout
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>

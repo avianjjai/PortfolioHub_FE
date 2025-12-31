@@ -38,21 +38,19 @@ class UserDataService {
             this.userData = await this.userDataPromise;
             return this.userData;
         } catch (error) {
-            console.error('Error fetching user data:', error);
             throw error;
         }
     }
 
     private async _fetchUserData(): Promise<any> {
-        try {
-            return await getMe();
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            throw error;
-        } finally {
-            this.isFetching = false;
-            this.userDataPromise = null;
-        }
+        // try {
+        //     return await getMe();
+        // } catch (error) {
+        //     throw error;
+        // } finally {
+        //     this.isFetching = false;
+        //     this.userDataPromise = null;
+        // }
     }
 }
 

@@ -1,20 +1,47 @@
 import React, { useState } from 'react';
+import { register } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
-interface RegisterFormProps {
-    loading?: boolean;
-}
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ loading }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const RegisterForm: React.FC = () => {
+    const [user, setUser] = useState({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        username: '',
+    })
+
     const [showPassword, setShowPassword] = useState(false);
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('Form submitted:', { email, password, confirmPassword });
-        alert('Form submitted! Email: ' + email + ', Password: ' + password + ', Confirm Password: ' + confirmPassword);
+    const handleSubmit = async (e: React.FormEvent) => {
+        try {
+            setLoading(true);
+            e.preventDefault();
+
+            const userData = {
+                ...user,
+                username: user.email,
+            }
+
+            const response = await register(userData);
+            if (response.status_code === 400) {
+                throw new Error(response.message ?? 'Registration failed');
+            }
+
+            if (response.access_token) {
+                localStorage.setItem('access_token', response.access_token);
+                window.location.href = '/';
+                
+            }
+        } catch (error: any) {
+            setError(error.message ?? 'Registration failed');
+        } 
+        finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -23,8 +50,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ loading }) => {
                 type="email"
                 placeholder="Email"
                 className="w-full px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                value={user.email}
+                onChange={e => setUser({ ...user, email: e.target.value })}
                 autoComplete="email"
             />
 
@@ -33,8 +60,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ loading }) => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Password"
                     className="w-full px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    value={user.password}
+                    onChange={e => setUser({ ...user, password: e.target.value })}
                 />
                 <button
                     type="button"
@@ -49,10 +76,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ loading }) => {
             <div className="relative">
                 <input
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Password"
+                    placeholder="Confirm Password"
                     className="w-full px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    value={user.confirmPassword}
+                    onChange={e => setUser({ ...user, confirmPassword: e.target.value })}
                 />
                 <button
                     type="button"
