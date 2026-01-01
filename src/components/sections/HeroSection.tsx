@@ -78,23 +78,23 @@ const HeroSection = () => {
                                     </p>
                                 )}
 
-                                <div className="flex flex-row gap-4 justify-center lg:justify-start">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                                     <button 
                                         onClick={handleResumeDownload}
-                                        className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                                        className="bg-white text-gray-900 px-6 sm:px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors w-full sm:w-auto"
                                     >
                                         <Download size={20} /> Resume
                                     </button>
                                     {!isMe && isValidUser && <button 
                                         onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                                        className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                                        className="bg-white text-gray-900 px-6 sm:px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors w-full sm:w-auto"
                                     >
                                         <Mail size={20} /> Contact Me
                                     </button>
                                     }
                                     <button 
                                         onClick={handleShare}
-                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 sm:px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
                                     >
                                         {showCopied ? (
                                             <>
@@ -125,10 +125,10 @@ const HeroSection = () => {
                                                     </p>
 
                                                     {/* Put Add Your Information and Share Portfolio buttons in a row */}
-                                                    <div className="flex flex-row gap-4">
+                                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                                         <button
                                                         onClick={() => setShowEditForm(true)}
-                                                        className="px-8 py-3 bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-white/40 hover:to-white/30 transition-all duration-300 border border-white/40 shadow-lg hover:shadow-xl hover:scale-105 text-base flex items-center gap-2 mx-auto lg:mx-0"
+                                                        className="px-6 sm:px-8 py-3 bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-white/40 hover:to-white/30 transition-all duration-300 border border-white/40 shadow-lg hover:shadow-xl hover:scale-105 text-base flex items-center gap-2 mx-auto lg:mx-0 w-full sm:w-auto"
                                                     >
                                                         <Edit2 size={20} />
                                                         Add Your Information
@@ -136,7 +136,7 @@ const HeroSection = () => {
 
                                                     <button 
                                                         onClick={handleShare}
-                                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 sm:px-8 py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
                                                     >
                                                         {showCopied ? (
                                                             <>
