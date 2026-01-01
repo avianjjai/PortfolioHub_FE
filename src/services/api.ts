@@ -790,21 +790,26 @@ export const updatePortfolio = async(portfolio: Partial<any>): Promise<any> => {
 }
 
 /**
- * Download Resume PDF for current authenticated user using LaTeX (backend generation)
+ * Download Resume PDF for a user using LaTeX (backend generation)
  * Uses LaTeX template for professional formatting
+ * @param userId - The user ID for the resume to download (optional, defaults to current user)
  * @returns Promise that resolves when PDF is downloaded
  */
-export const downloadResume = async (): Promise<void> => {
-    const token = localStorage.getItem('access_token') ?? '';
+export const downloadResume = async (userId?: string): Promise<void> => {
     try {
-        const response = await authenticatedApi(token).get('/resume/latex', {
+        // Use regular API (no authentication required)
+        const url = userId 
+            ? `/resume/latex?user_id=${userId}`
+            : `/resume/latex?user_id=${localStorage.getItem('current_user_id') || ''}`;
+        
+        const response = await api.get(url, {
             responseType: 'blob',
         });
         
         const blob = new Blob([response.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
+        const url_obj = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = url;
+        link.href = url_obj;
         
         const contentDisposition = response.headers['content-disposition'];
         let filename = 'Resume.pdf';
@@ -819,7 +824,7 @@ export const downloadResume = async (): Promise<void> => {
         document.body.appendChild(link);
         link.click();
         link.remove();
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(url_obj);
     } catch (error: any) {
         throw new Error(error.message || 'Failed to download resume. Please try again.');
     }

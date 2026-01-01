@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useParams } from "react-router-dom";
 import { Check, Download, Mail, Share2, User, Edit2 } from "lucide-react";
 import { ModalOverlay } from "../forms/ModalOverlay";
 import EditPortfolioForm from "../forms/EditPortfolioForm";
@@ -23,6 +24,7 @@ const sortName = (user: any) => {
 
 const HeroSection = () => {
     const { currentUser, isMe, isValidUser } = useAuth();
+    const { userId } = useParams<{ userId?: string }>();
     const [showCopied, setShowCopied] = useState(false);
     const [portfolioData] = useState<any>(null);
     const [isSufficientInfo, setIsSufficientInfo] = useState(false);
@@ -50,7 +52,13 @@ const HeroSection = () => {
 
     const handleResumeDownload = async () => {
         try {
-            await downloadResume();
+            // Get user ID from URL params (when viewing someone else's profile) or currentUser (own profile)
+            const targetUserId = userId || currentUser?.id;
+            if (!targetUserId) {
+                alert('Unable to determine user. Please try again.');
+                return;
+            }
+            await downloadResume(targetUserId);
         } catch (error: any) {
             alert(error.message || 'Failed to download resume. Please try again.');
         }
